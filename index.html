@@ -6,21 +6,17 @@
 </head>
 <body>
 <script>
-  // Récupère le code d'invitation depuis l'URL
   const params = new URLSearchParams(window.location.search)
   const code = params.get('code')
 
-  // Tente d'ouvrir l'app
   const deepLink = code
     ? `bibliopotes://invite?code=${code}`
     : `bibliopotes://`
 
-  // Redirige vers l'app ou le Play Store après 2s
   window.location = deepLink
 
   setTimeout(() => {
-    // Remplace par ton vrai lien Play Store quand l'app sera publiée
-    window.location = 'https://play.google.com/store/apps/details?id=com.ton.bundleid'
+    window.location = 'https://play.google.com/store/apps/details?id=com.arnaud.BiblioPotes'
   }, 2000)
 </script>
 <p>Ouverture de BiblioPotes...</p>
