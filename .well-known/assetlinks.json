@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.get_login_creds"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.arnaud.BiblioPotes",
+    "sha256_cert_fingerprints": ["VOTRE_SHA256"]
+  }
+}]
