@@ -1,8 +1,10 @@
 [{
-  "relation": ["delegate_permission/common.get_login_creds"],
+  "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
     "package_name": "com.arnaud.BiblioPotes",
-    "sha256_cert_fingerprints": ["VOTRE_SHA256"]
+    "sha256_cert_fingerprints": [
+      "2C:3E:82:F5:AB:66:5C:90:F2:3E:95:94:0C:85:1B:9C:E1:FC:79:EC:93:0F:19:27:E7:83:F4:22:58:FF:49:E3"
+    ]
   }
 }]
