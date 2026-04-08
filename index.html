@@ -2,23 +2,29 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BiblioPotes</title>
+  <style>
+    body { font-family: sans-serif; display: flex; align-items: center; 
+           justify-content: center; height: 100vh; margin: 0; 
+           background: #3d4a38; color: #f5f0e8; text-align: center; }
+    p { font-size: 18px; }
+    small { opacity: 0.6; font-size: 13px; }
+  </style>
 </head>
 <body>
-<script>
-  const params = new URLSearchParams(window.location.search)
-  const code = params.get('code')
+  <div>
+    <p>📚 Ouverture de BiblioPotes...</p>
+    <small>Si rien ne se passe, <a id="storeLink" style="color:#c47c3a">télécharge l'app ici</a></small>
+  </div>
+  <script>
+    const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.arnaud.BiblioPotes'
+    
+    document.getElementById('storeLink').href = PLAY_STORE
 
-  const deepLink = code
-    ? `bibliopotes://invite?code=${code}`
-    : `bibliopotes://`
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    const deepLink = code ? `bibliopotes://invite?code=${code}` : `bibliopotes://`
 
-  window.location = deepLink
-
-  setTimeout(() => {
-    window.location = 'https://play.google.com/store/apps/details?id=com.arnaud.BiblioPotes'
-  }, 2000)
-</script>
-<p>Ouverture de BiblioPotes...</p>
-</body>
-</html>
+    // Tente le deep link
+    window.location = deepLink
