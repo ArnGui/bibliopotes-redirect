@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BiblioPotes — Rejoindre un groupe</title>
+  <title>BiblioPotes</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -53,9 +53,9 @@
 </head>
 <body>
   <div class="card">
-    <span class="emoji">📚</span>
-    <h1>Tu as été invité sur BiblioPotes</h1>
-    <p class="group" id="groupLabel">Chargement...</p>
+    <span class="emoji" id="emoji">📚</span>
+    <h1 id="title">BiblioPotes</h1>
+    <p class="group" id="groupLabel"></p>
     <p class="status" id="status">Ouverture de l'application...</p>
     <a class="btn btn-primary" id="storeBtn" href="#" style="display:none">
       Télécharger BiblioPotes
@@ -67,65 +67,89 @@
   </div>
 
   <script>
-    const PLAY_STORE  = 'https://play.google.com/store/apps/details?id=com.arnaud.BiblioPotes'
-    const APP_STORE   = 'https://apps.apple.com/app/bibliopotes/id000000000' // à remplacer après publication iOS
-    const params      = new URLSearchParams(window.location.search)
-    const code        = params.get('code') || ''
+    const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.arnaud.BiblioPotes'
+    const APP_STORE  = 'https://apps.apple.com/app/bibliopotes/id000000000'
+    const params     = new URLSearchParams(window.location.search)
+    const code       = params.get('code') || ''
+    const type       = params.get('type') || ''
 
-    // Détecter l'OS
-    const ua       = navigator.userAgent || ''
-    const isIOS    = /iphone|ipad|ipod/i.test(ua)
+    const ua        = navigator.userAgent || ''
+    const isIOS     = /iphone|ipad|ipod/i.test(ua)
     const isAndroid = /android/i.test(ua)
-    const storeUrl = isIOS ? APP_STORE : PLAY_STORE
+    const storeUrl  = isIOS ? APP_STORE : PLAY_STORE
 
-    // Afficher le code dans le label
-    document.getElementById('groupLabel').textContent =
-      code ? 'Code d\'invitation : ' + code : 'Rejoins le groupe de ton ami'
-
-    // Deep link universel — Android l'intercepte via intentFilters autoVerify
-    // iOS l'intercepte via Universal Links (nécessite apple-app-site-association)
-    const universalLink = 'https://arngui.github.io/bibliopotes-redirect/?code=' + code
-
-    // Fallback : scheme custom
-    const deepLink = code ? 'bibliopotes://invite?code=' + code : 'bibliopotes://'
-
-    const storeBtnEl = document.getElementById('storeBtn')
-    const openBtnEl  = document.getElementById('openBtn')
-    const statusEl   = document.getElementById('status')
+    const storeBtnEl  = document.getElementById('storeBtn')
+    const openBtnEl   = document.getElementById('openBtn')
+    const statusEl    = document.getElementById('status')
+    const emojiEl     = document.getElementById('emoji')
+    const titleEl     = document.getElementById('title')
+    const groupLabelEl = document.getElementById('groupLabel')
 
     storeBtnEl.href = storeUrl
 
-    // Stratégie : tenter le deep link, après 2.5s afficher le bouton store
-    function tryOpenApp() {
-      statusEl.textContent = 'Tentative d\'ouverture de l\'app...'
+    // ── Mode reset password ──────────────────────────────────
+    if (type === 'recovery') {
+      emojiEl.textContent     = '🔑'
+      titleEl.textContent     = 'Réinitialisation du mot de passe'
+      groupLabelEl.textContent = 'Clique ci-dessous pour choisir un nouveau mot de passe dans l\'app.'
 
-      // On tente le scheme custom — plus fiable que le lien universel pour Android non vérifié
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = deepLink
-      document.body.appendChild(iframe)
+      // Supabase passe le token dans le hash (#access_token=...&type=recovery)
+      // On le relit et on construit le deep link
+      const hash       = window.location.hash.substring(1)
+      const hashParams = new URLSearchParams(hash)
+      const accessToken = hashParams.get('access_token') || params.get('access_token') || ''
+      const refreshToken = hashParams.get('refresh_token') || params.get('refresh_token') || ''
 
-      // Aussi tenter window.location pour iOS
-      setTimeout(() => { window.location = deepLink }, 100)
+      const deepLink = 'bibliopotes://reset-password?access_token=' + accessToken + '&refresh_token=' + refreshToken
 
-      // Si l'app ne s'est pas ouverte après 2.5s → afficher les boutons
-      setTimeout(() => {
-        statusEl.textContent = 'L\'app ne semble pas installée.'
-        storeBtnEl.style.display = 'block'
-        openBtnEl.style.display  = 'block'
-        openBtnEl.href = deepLink
-        openBtnEl.textContent = 'Réessayer d\'ouvrir l\'app'
-      }, 2500)
-    }
+      function tryOpenRecovery() {
+        statusEl.textContent = 'Ouverture de l\'app...'
+        setTimeout(() => { window.location = deepLink }, 100)
+        setTimeout(() => {
+          statusEl.textContent = 'L\'app ne semble pas installée.'
+          storeBtnEl.style.display = 'block'
+          openBtnEl.style.display  = 'block'
+          openBtnEl.href = deepLink
+          openBtnEl.textContent = 'Réessayer d\'ouvrir l\'app'
+        }, 2500)
+      }
 
-    // Lancer dès que la page est prête
-    if (isIOS || isAndroid) {
-      tryOpenApp()
+      if (isIOS || isAndroid) {
+        tryOpenRecovery()
+      } else {
+        statusEl.textContent = 'Ouvre ce lien sur ton téléphone pour réinitialiser ton mot de passe.'
+      }
+
+    // ── Mode invitation groupe ───────────────────────────────
     } else {
-      // Desktop — afficher directement les boutons store
-      statusEl.textContent = 'Ouvre cette page sur ton téléphone pour rejoindre le groupe.'
-      storeBtnEl.style.display = 'block'
-      storeBtnEl.textContent   = 'Voir sur le Play Store'
+      titleEl.textContent = 'Tu as été invité sur BiblioPotes'
+      groupLabelEl.textContent = code ? 'Code d\'invitation : ' + code : 'Rejoins le groupe de ton ami'
+
+      const deepLink = code ? 'bibliopotes://invite?code=' + code : 'bibliopotes://'
+
+      function tryOpenApp() {
+        statusEl.textContent = 'Tentative d\'ouverture de l\'app...'
+        const iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.src = deepLink
+        document.body.appendChild(iframe)
+        setTimeout(() => { window.location = deepLink }, 100)
+        setTimeout(() => {
+          statusEl.textContent = 'L\'app ne semble pas installée.'
+          storeBtnEl.style.display = 'block'
+          openBtnEl.style.display  = 'block'
+          openBtnEl.href = deepLink
+          openBtnEl.textContent = 'Réessayer d\'ouvrir l\'app'
+        }, 2500)
+      }
+
+      if (isIOS || isAndroid) {
+        tryOpenApp()
+      } else {
+        statusEl.textContent = 'Ouvre cette page sur ton téléphone pour rejoindre le groupe.'
+        storeBtnEl.style.display = 'block'
+        storeBtnEl.textContent   = 'Voir sur le Play Store'
+      }
     }
   </script>
 </body>
